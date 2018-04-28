@@ -1,0 +1,20 @@
+svn：https://120.26.80.6:443/svn/kxpt/trunk
+wurao	123456aa
+
+
+测试：http://send.mrfix.cn/admin/common/main.jhtml
+admin	adminmrfix
+
+正式：paidan.mrfix.cn/admin/common/main.jhtml
+admin	admin@mrfix2017
+
+
+测试服务器：121.40.161.223
+测试：
+administrator	Mrfix%2016@
+
+
+正式服务器：120.26.80.6
+
+
+微信公众号后台：

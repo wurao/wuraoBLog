@@ -1,0 +1,106 @@
+1.网点车型
+2.网点地图
+3.网点信息导出
+4.网店师傅
+5.设置天安鑫全域的余额控制。
+6.设置天之眼为手动派单
+7.百度车型识别
+	/project/kxpt/WEB-INF/classes/net/shopxx/controller/micro/
+
+	/project/kxpt/WEB-INF/template/micro/wdsite/order/
+
+	/project/kxpt/WEB-INF/classes/net/shopxx/util/baiduCar/
+
+	D:\work\workespace\shoping_mrfix\build\net\shopxx\util\baiduCar
+
+	-- 执行的方法		7500条开始
+	http://paidan.mrfix.cn:8080/admin/dataAction/each.jhtml?start=7500&row=100
+
+	路径：
+	SpWdMicroController.java
+	D:\work\workespace\shoping_mrfix\src\net\shopxx\util\baiduCar\BaiduCarPhoto.java
+	D:\work\workespace\shoping_mrfix\src\net\shopxx\controller\admin\DataActionController.java
+	D:\work\workespace\shoping_mrfix\WebRoot\WEB-INF\template\micro\wdsite\order\detail.ftl
+
+
+8.财务	
+	0.商家财务流程
+		spOrderController	
+			sjAddOrder	商家发布订单		merchantFabu	保存发布订单
+			sjCreateOrder	地图/列表发布		merchantFabu
+			ksAddOrder	快速发布		saveKsAddOrder	保存内部客服快速发布订单
+		spOrderServiceImpl
+			saveOrder(SpOrder order, List<SpOrderLine> lineList, List<Filter> filters, Area area, SpServiceSite sjSite, SpServiceSite wdSite, String createBy)
+			saveOrder参数：订单，订单明细，过滤条件（外部订单号和商家），地区，商家，网点，创建人
+			1.创建订单号
+			2.判断订单生成方式，余额控制，订单状态等
+			3.循环判断保存快修订单明细上门或者到店价格
+			4.有网点就发送短信生成完工验证码
+				4.1判断易鑫来源的单不发短信给用户，和不生成完工验证码
+			5.没网点执行这里
+				5.0指定下单时传递网点编号，并且能查询到将设置到店（没有就忽略）
+				5.1判断产品是否符合上门
+				5.2不符合上门执行----判断艾尔佳旗舰店的空调滤特殊，有上门区域的设置上门，否则为到店
+			6.判断如果没有获取到商家价格将发布订单失败
+				6.1delete删除这条订单
+			7.判断有获取到商家价格将发布订单成功
+				7.1判断订单来源和状态，先匹配天猫来源优先。判断完，都会修改订单
+			8.操作记录--发布订单
+				8.1添加操作记录
+				8.2保存商家日流水记录
+					savaOrderDayCurrent(SpOrder order, SpServiceSite sjSite, String orderNo, String operate, BigDecimal usableMoney, BigDecimal freezeMoney, String remark, String createBy);
+					savaOrderDayCurrent参数：订单，商家，订单号，操作，可用金额，冻结金额，备注，创建人
+			9.保存致消费者表
+				
+	1.商家订单流水明细
+		SpOrderDayCurrent表（订单流水明细）
+		0.修正金额
+		http://localhost:8080/shoping_mrfix/admin/spOrderDayCurrent/newStartMoney.jhtml?id=8772
+		
+		1.找到错误的节点（通过上一次的剩余余额，来判断这一次的起始是否正确，找到存在多少个，标记出来）
+		http://localhost:8080/shoping_mrfix/admin/spOrderDayCurrent/tagStartMoney.jhtml（定位单个商家金额）
+		http://localhost:8080/shoping_mrfix/admin/spOrderDayCurrent/tagStartMoney2.jhtml（定位所有）
+
+		2.错误的金额标注显示
+		http://localhost:8080/shoping_mrfix/admin/spOrderDayCurrent/sjBalanceTag.jhtml
+		
+		终极版：修正余额和标记错误节点（分页控制一次性对几个商家执行）
+		http://localhost:8080/shoping_mrfix/admin/spOrderDayCurrent/newStartMoney.jhtml?start=0&page=5
+		paidan.mrfix.cn:8080/admin/spOrderDayCurrent/newStartMoney.jhtml?start=20&page=10
+		paidan.mrfix.cn:8080/admin/spOrderDayCurrent/newStartMoney.jhtml?start=30&page=20
+		paidan.mrfix.cn:8080/admin/spOrderDayCurrent/newStartMoney.jhtml?start=70&page=20
+		paidan.mrfix.cn:8080/admin/spOrderDayCurrent/newStartMoney.jhtml?start=100&page=100
+		paidan.mrfix.cn:8080/admin/spOrderDayCurrent/newStartMoney.jhtml?start=200&page=100
+		paidan.mrfix.cn:8080/admin/spOrderDayCurrent/newStartMoney.jhtml?start=310&page=10
+		
+		paidan.mrfix.cn:8080/admin/spOrderDayCurrent/newStartMoney.jhtml?start=320&page=10
+		paidan.mrfix.cn:8080/admin/spOrderDayCurrent/newStartMoney.jhtml?start=330&page=10
+		paidan.mrfix.cn:8080/admin/spOrderDayCurrent/newStartMoney.jhtml?start=340&page=10
+	2.商家流程							
+		订单发布		---	订单承接		---订单完工/取消
+		可用余额扣款	---	冻结余额加款	---冻结金额扣款
+		九音旗舰店充值[充值]	SP20180310032459551-2	2018-03-23 13:15:05			冻结金额变成负数从这开始的。差了5175
+		九音旗舰店充值[充值]	excel	SP20180320030554941	2018-03-20 15:05:54	是	68670	5683.5	-73856.5	-135	5548.5	-73991.5	125		77040	135		260		77175	完工
+		九音旗舰店充值[充值]	excel	SP20180310032722412	2018-03-20 15:05:56	是	68670	10723.5	-73991.5	130		10853.5	-73861.5	-4915	77175	-130	-5045	77045	取消
+		九音旗舰店充值[充值]	excel	SP20180318120840819	2018-03-20 15:20:00	是	68670	10853.5	-73861.5	0		10853.5	-73861.5	-5045	77045	-125	-5170	76920	完工
+	
+		靓知渝旗舰店[充值]		SP20180124125649668		2018-02-01 13:45:00			冻结金额变成负数从这开始的。差了5610
+		靓知渝旗舰店[充值]	excel	SP20180124023546675	2018-01-24 14:35:46	是		1193	-28087	-35	1158	-28122	38566	64581	35	38601	64616	取消
+		靓知渝旗舰店[充值]	excel	SP2017121401153506	2018-01-24 14:35:48	是		6768	-28122	-48	6720	-28170	32991	64616	48	33039	64664	冻结
+		靓知渝旗舰店[充值]	excel	SP20180120061817198	2018-01-24 14:35:48	是		6768	-28170	0	6768	-28170	32991	64664	-80	32911	64584	完工
+
+	
+9.售后管理
+10.接口调用日志
+11.库存查询
+12.商品库存
+13.订单增加暂定派单，增加网点备份
+14.修改短信
+
+
+
+需修改的地方：
+网点信息-修改-备用门店权限采用shiro实现。
+短信设置后台添加60秒发送一次。
+
+
